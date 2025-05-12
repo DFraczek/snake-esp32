@@ -1,9 +1,8 @@
-#include <TFT_eSPI.h>
-#include <Arduino.h> 
-
 #include "menu.h"
 #include "globals.h"
-#include "game.h"
+#include "game_logic.h"
+
+#include "img/apple_image.h"
 
 static const char* snakeSpeedText[] = {"SLOW", "NORMAL", "FAST"};
 static int menuSelection = 0;
@@ -57,11 +56,11 @@ void handleMenuNavigation(GameState& gameState) {
 void updateMenuSelection(unsigned long currentTime) {
   int yVal = analogRead(VRy);
   if (currentTime - lastMoveTime > 200) {
-    if (yVal > 3500) {
+    if (yVal > JOY_THRESHOLD_HIGH) {
       menuSelection = 1;
       drawMenuArrow();
       lastMoveTime = currentTime;
-    } else if (yVal < 1000) {
+    } else if (yVal < JOY_THRESHOLD_LOW) {
       menuSelection = 0;
       drawMenuArrow();
       lastMoveTime = currentTime;
@@ -72,26 +71,15 @@ void updateMenuSelection(unsigned long currentTime) {
 void updateSpeedSelection(GameState& gameState, unsigned long currentTime) {
   int xVal = analogRead(VRx);
   if (menuSelection == 1 && currentTime - lastMoveTime > 200) {
-    if (xVal > 3500) {
+    if (xVal > JOY_THRESHOLD_HIGH) {
       gameState.speedSelection = (gameState.speedSelection + 1) % 3;
       lastMoveTime = currentTime;
       wasGameSpeedChanged = true;
-    } else if (xVal < 1000) {
+    } else if (xVal < JOY_THRESHOLD_LOW) {
       gameState.speedSelection = (gameState.speedSelection + 2) % 3;
       lastMoveTime = currentTime;
       wasGameSpeedChanged = true;
     }
-  }
-}
-
-void updateSpeedDisplay(GameState& gameState) {
-  if (wasGameSpeedChanged) {
-    tft.fillRect(95, 173, 100, 25, COLOR_BLACK);
-    tft.setTextSize(2);
-    if (gameState.speedSelection == 1) tft.setCursor(110, 173);
-    else tft.setCursor(120, 173);
-    tft.print(snakeSpeedText[gameState.speedSelection]);
-    wasGameSpeedChanged = false;
   }
 }
 
@@ -105,4 +93,15 @@ void handleMenuClick(GameState& gameState) {
     }
   }
   lastSwState = sw;
+}
+
+void updateSpeedDisplay(GameState& gameState) {
+  if (wasGameSpeedChanged) {
+    tft.fillRect(95, 173, 100, 25, COLOR_BLACK);
+    tft.setTextSize(2);
+    if (gameState.speedSelection == 1) tft.setCursor(110, 173);
+    else tft.setCursor(120, 173);
+    tft.print(snakeSpeedText[gameState.speedSelection]);
+    wasGameSpeedChanged = false;
+  }
 }

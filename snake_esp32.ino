@@ -3,7 +3,7 @@
 
 #include "menu.h"
 #include "globals.h"
-#include "game.h"
+#include "game_logic.h"
 
 TFT_eSPI tft = TFT_eSPI();
 
@@ -13,7 +13,9 @@ const uint16_t COLOR_DARK_GREEN = tft.color565(6, 140, 42);
 const uint16_t COLOR_DARK_RED   = tft.color565(192, 49, 44);
 
 void setup() {
-  randomSeed(analogRead(0));
+  uint32_t seed = esp_random();
+  randomSeed(seed);
+
   Serial.begin(115200);
   pinMode(SW, INPUT_PULLUP);
   tft.init();
