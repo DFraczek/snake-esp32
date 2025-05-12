@@ -13,21 +13,20 @@ static int lastSwState = HIGH;
 
 void drawMenu(GameState& gameState) {
   tft.fillScreen(COLOR_BLACK);
-  tft.setTextColor(tft.color565(0,99,28));
-  tft.drawRect(0,40,240,280,tft.color565(6,140,42));
+  tft.drawRect(0,40,240,280,COLOR_DARK_GREEN);
 
   tft.setTextSize(3);
-  tft.setTextColor(tft.color565(6,140,42));
+  tft.setTextColor(COLOR_DARK_GREEN);
   tft.setCursor(80, 10);
   tft.print("SNAKE");
 
   tft.setTextSize(2);
-  tft.drawRect(60, 80, 160, 40, tft.color565(6,140,42));
+  tft.drawRect(60, 80, 160, 40, COLOR_DARK_GREEN);
   tft.setCursor(95, 93);
-  tft.setTextColor(tft.color565(192,49,44));
+  tft.setTextColor(COLOR_DARK_RED);
   tft.print("NEW GAME");
 
-  tft.drawRect(60, 160, 160, 40, tft.color565(6,140,42));
+  tft.drawRect(60, 160, 160, 40, COLOR_DARK_GREEN);
   tft.setCursor(70, 173);
   tft.print("<");
   tft.setCursor(200, 173);

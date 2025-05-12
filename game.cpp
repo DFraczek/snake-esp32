@@ -31,9 +31,14 @@ void drawInitialGameBoard(GameState& state) {
     tft.fillScreen(COLOR_BLACK);
     tft.pushImage(100, 10, SEGMENT_SIZE, SEGMENT_SIZE, apple_image);
     tft.setTextSize(3);
-    tft.setTextColor(tft.color565(6, 140, 42));
+    tft.setTextColor(COLOR_DARK_GREEN);
     tft.setCursor(SCORE_X, SCORE_Y);
     tft.print(state.score);
+    drawGameFrame();
+}
+
+void drawGameFrame() {
+    tft.drawRect(19, 39, 203, 263, COLOR_DARK_GREEN);
 }
 
 void runGame(GameState& state) {
@@ -47,19 +52,17 @@ void runGame(GameState& state) {
 
     if (shouldMoveSnake(state, now)) {
         updateSnake(state);
-        handleCollisions(state);
-        handleWinningGame(state);
         state.lastMoveStepTime = now;
     }
 }
 
 bool shouldUpdateDirection(GameState& state, unsigned long now) {
-    return (now - state.lastInputTime > 100);
+    return (now - state.lastJoystickMovementTime > 100);
 }
 
 void updateDirection(GameState& state, int xVal, int yVal, unsigned long now) {
     updateSnakeDirectionFromJoystick(yVal, xVal, state);
-    state.lastInputTime = now;
+    state.lastJoystickMovementTime = now;
 }
 
 bool shouldMoveSnake(GameState& state, unsigned long now) {
@@ -71,6 +74,10 @@ void updateSnake(GameState& state) {
     SnakeSegment tail = state.snake[state.snakeLength - 1];
     moveSnake(state);
 
+    handleCollisions(state);
+    handleWinningGame(state);
+    if (!state.isGameRunning) return; 
+    
     if (!state.wasAppleEaten) {
         clearOldTail(tail);
     }
@@ -86,11 +93,6 @@ void clearOldTail(SnakeSegment& tail) {
 void renderGameObjects(GameState& state) {
     drawApple(state);
     drawSnake(state);
-    drawGameFrame();
-}
-
-void drawGameFrame() {
-    tft.drawRect(0, 40, 240, 280, tft.color565(6, 140, 42));
 }
 
 void endGameIf(bool condition, GameState& state, char* message) {
@@ -113,7 +115,7 @@ void handleWinningGame(GameState& state) {
 bool checkWallCollision(GameState& state) {
     int x = state.snake[0].x;
     int y = state.snake[0].y;
-    return (x < 0 || x >= GAMEBOARD_WIDTH || y < 2 || y >= GAMEBOARD_HEIGHT);
+    return (x < WALL_X1 || x >= WALL_X2|| y < WALL_Y1 || y >= WALL_Y2);
 }
 
 bool checkSelfCollision(GameState& state) {
@@ -208,10 +210,11 @@ bool isAppleOnSnake(GameState& state, int x, int y) {
 
 void generateApplePosition(GameState& state) {
     do {
-        state.appleX = random(0, GAMEBOARD_WIDTH);
-        state.appleY = random(2, GAMEBOARD_HEIGHT);
+        state.appleX = random(WALL_X1, WALL_X2); 
+        state.appleY = random(WALL_Y1, WALL_Y2);
     } while (isAppleOnSnake(state, state.appleX, state.appleY));
 }
+
 
 void moveSnake(GameState& state) {
     if (state.wasAppleEaten) state.snakeLength++;
@@ -245,7 +248,7 @@ bool isHeadAtApplePosition(GameState& state){
 void updateScore(GameState& state) {
     tft.fillRect(SCORE_X, SCORE_Y, 50, 25, COLOR_BLACK);
     tft.setTextSize(3);
-    tft.setTextColor(tft.color565(6,140,42));
+    tft.setTextColor(COLOR_DARK_GREEN);
     tft.setCursor(SCORE_X, SCORE_Y);
     tft.print(state.score);
 }
@@ -277,19 +280,19 @@ void updateSnakeDirectionFromJoystick(int yVal, int xVal, GameState& state) {
 
 void showEndGameView(int score, char* message) {
   tft.fillScreen(COLOR_BLACK);
-  tft.drawRect(0,0,240,320,tft.color565(6,140,42));
-  tft.setTextColor(tft.color565(6,140,42));
+  tft.drawRect(0,0,240,320,COLOR_DARK_GREEN);
+  tft.setTextColor(COLOR_DARK_GREEN);
   tft.setTextSize(3);
   tft.setCursor(45, 110);
   tft.print(message);
 
   tft.setTextSize(2);
   tft.setCursor(50, 160);
-  tft.setTextColor(tft.color565(192,49,44));
+  tft.setTextColor(COLOR_DARK_RED);
   tft.print("Score: ");
   tft.pushImage(130, 155, 20, 20, apple_image);
   tft.setTextSize(3);
-  tft.setTextColor(tft.color565(6,140,42));
+  tft.setTextColor(COLOR_DARK_GREEN);
   tft.setCursor(160, 155);
   tft.print(score);
 

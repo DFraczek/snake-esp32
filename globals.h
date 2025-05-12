@@ -6,20 +6,27 @@
 #define COLOR_BLACK TFT_BLACK
 #define COLOR_GREEN TFT_GREEN
 #define COLOR_RED TFT_RED
-#define COLOR_YELLOW TFT_YELLOW
+extern const uint16_t COLOR_DARK_GREEN;
+extern const uint16_t COLOR_DARK_RED;
 
 #define VRx 34
 #define VRy 35
 #define SW  25
 
-#define MAX_SNAKE_LENGHT 168
-#define GAMEBOARD_WIDTH 12
-#define GAMEBOARD_HEIGHT 16
+#define MAX_SNAKE_LENGHT 130
+
+#define WALL_Y1 2
+#define WALL_Y2 15
+#define WALL_X1 1
+#define WALL_X2 11
 #define SCORE_X 130
 #define SCORE_Y 10
 #define SEGMENT_SIZE 20
 #define JOY_THRESHOLD_HIGH  3500
 #define JOY_THRESHOLD_LOW  1000
+
+extern const int snakeSpeed[];
+extern TFT_eSPI tft;
 
 struct SnakeSegment {
   int x;
@@ -27,20 +34,17 @@ struct SnakeSegment {
 };
 
 struct GameState {
-    int dirX = 1, dirY = 0;
-    int lastDirX = 1, lastDirY = 0;
-    int score = 0;
-    int snakeLength = 3;
+    int dirX, dirY;
+    int lastDirX, lastDirY;
+    int score;
+    int snakeLength;
     SnakeSegment snake[MAX_SNAKE_LENGHT];
-    int appleX = 0, appleY = 0;
-    bool wasAppleEaten = false;
-    bool isGameRunning = false;
-    unsigned long lastInputTime = 0;
+    int appleX, appleY;
+    bool wasAppleEaten;
+    bool isGameRunning;
+    unsigned long lastJoystickMovementTime = 0;
     unsigned long lastMoveStepTime = 0;
     int speedSelection = 0;
-};
-
-extern const int snakeSpeed[];
-extern TFT_eSPI tft; 
+}; 
 
 #endif
