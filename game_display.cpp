@@ -25,16 +25,17 @@ void renderGameObjects(GameState& state) {
 }
 
 void drawSnake(GameState& state) {
-    for (int i = 0; i < state.snakeLength; ++i) {
-        int x = state.snake[i].x * SEGMENT_SIZE;
-        int y = state.snake[i].y * SEGMENT_SIZE;
+    size_t snakeLength = state.snake.body.size();
+    for (size_t i = 0; i < snakeLength; i++) {
+        int x = state.snake.body[i].x * SEGMENT_SIZE;
+        int y = state.snake.body[i].y * SEGMENT_SIZE;
 
         if (i == 0) {
-            drawSnakeHead(x, y, state.dirX, state.dirY);
-        } else if (i == state.snakeLength - 1) {
-            drawSnakeTail(x, y, state.snake[i - 1], state.snake[i]);
+            drawSnakeHead(x, y, state.snake.dirX, state.snake.dirY);
+        } else if (i == snakeLength - 1) {
+            drawSnakeTail(x, y, state.snake.body[i - 1], state.snake.body[i]);
         } else {
-            drawSnakeBody(x, y, state.snake[i - 1], state.snake[i + 1], state.snake[i]);
+            drawSnakeBody(x, y, state.snake.body[i - 1], state.snake.body[i + 1], state.snake.body[i]);
         }
     }
 }
@@ -91,15 +92,19 @@ void drawSegmentImage(int x, int y, const uint16_t* img) {
 }
 
 void drawApple(GameState& state) {
+    int x = state.apple.x * SEGMENT_SIZE;
+    int y = state.apple.y * SEGMENT_SIZE;
     if (apple_image) {
-        tft.pushImage(state.appleX * SEGMENT_SIZE, state.appleY * SEGMENT_SIZE,SEGMENT_SIZE, SEGMENT_SIZE, apple_image);
+        tft.pushImage(x, y, SEGMENT_SIZE, SEGMENT_SIZE, apple_image);
     } else {
-        tft.fillRect(state.appleX * SEGMENT_SIZE, state.appleY * SEGMENT_SIZE,SEGMENT_SIZE, SEGMENT_SIZE, COLOR_RED);
+        tft.fillRect(x, y, SEGMENT_SIZE, SEGMENT_SIZE, COLOR_RED);
     }
 }
 
 void clearOldApple(GameState& state){
-  tft.fillRect(state.appleX * SEGMENT_SIZE, state.appleY * SEGMENT_SIZE, SEGMENT_SIZE, SEGMENT_SIZE, COLOR_BLACK);
+  int x = state.apple.x * SEGMENT_SIZE;
+  int y = state.apple.y * SEGMENT_SIZE;
+  tft.fillRect(x, y, SEGMENT_SIZE, SEGMENT_SIZE, COLOR_BLACK);
 }
 
 void updateScore(GameState& state) {

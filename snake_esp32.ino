@@ -15,12 +15,10 @@ const uint16_t COLOR_DARK_RED   = tft.color565(192, 49, 44);
 void setup() {
   uint32_t seed = esp_random();
   randomSeed(seed);
-
   Serial.begin(115200);
   pinMode(SW, INPUT_PULLUP);
   tft.init();
   tft.setRotation(0);
-  tft.fillScreen(COLOR_BLACK);
   drawMenu(gameState);
   drawMenuArrow();
 }

@@ -13,19 +13,19 @@ void startGame(GameState& state) {
 }
 
 void resetGameState(GameState& state) {
-    state.snakeLength = 3;
-    state.dirX = 1;
-    state.dirY = 0;
-    state.lastDirX = 1;
-    state.lastDirY = 0;
-    state.wasAppleEaten = false;
+    state.snake.dirX = 1;
+    state.snake.dirY = 0;
+    state.snake.lastDirX = 1;
+    state.snake.lastDirY = 0;
+    state.apple.wasAppleEaten = false;
     state.score = 0;
 }
 
 void initSnake(GameState& state) {
-    state.snake[0] = {6, 7};
-    state.snake[1] = {5, 7};
-    state.snake[2] = {4, 7};
+    state.snake.body.clear(); 
+    state.snake.body.push_back({6, 7});
+    state.snake.body.push_back({5, 7});
+    state.snake.body.push_back({4, 7}); 
 }
 
 void runGame(GameState& state) {
@@ -33,36 +33,29 @@ void runGame(GameState& state) {
     int yVal = analogRead(VRy);
     int xVal = analogRead(VRx);
 
-    if (now - state.lastJoystickMovementTime > 100) {
+    if (now - state.timing.lastJoystickMovementTime > 100) {
         updateDirection(state, xVal, yVal, now);
     }
 
-    if (now - state.lastMoveStepTime > snakeSpeed[state.speedSelection]) {
+    if (now - state.timing.lastMoveStepTime > snakeSpeed[state.speedSelection]) {
         updateSnake(state);
-        state.lastMoveStepTime = now;
+        state.timing.lastMoveStepTime = now;
     }
 }
 
 void updateSnake(GameState& state) {
     eatApple(state);
-    SnakeSegment tail = state.snake[state.snakeLength - 1];
     moveSnake(state);
 
     handleCollisions(state);
     handleWinningGame(state);
     if (!state.isGameRunning) return; 
-    
-    if (!state.wasAppleEaten) {
-        clearOldTail(tail);
-    }
 
-    state.wasAppleEaten = false;
     renderGameObjects(state);
 }
 
 void updateDirection(GameState& state, int xVal, int yVal, unsigned long now) {
-    int newDirX = state.dirX;
-    int newDirY = state.dirY;
+    int newDirX, newDirY;
 
     if (yVal > JOY_THRESHOLD_HIGH) {
         newDirX = 0;
@@ -76,14 +69,17 @@ void updateDirection(GameState& state, int xVal, int yVal, unsigned long now) {
     } else if (xVal < JOY_THRESHOLD_LOW) {
         newDirX = -1;
         newDirY = 0;
+    } else{
+        newDirX = state.snake.dirX;
+        newDirY = state.snake.dirY;
     }
-
-    bool isReverse = (newDirX == -state.lastDirX && newDirY == -state.lastDirY);
+    
+    bool isReverse = (newDirX == -state.snake.lastDirX && newDirY == -state.snake.lastDirY);
     if (!isReverse) {
-        state.dirX = newDirX;
-        state.dirY = newDirY;
+        state.snake.dirX = newDirX;
+        state.snake.dirY = newDirY;
     }
-    state.lastJoystickMovementTime = now;
+    state.timing.lastJoystickMovementTime = now;
 }
 
 void endGameIf(bool condition, GameState& state, char* message) {
@@ -99,53 +95,49 @@ void handleCollisions(GameState& state) {
     endGameIf(checkSelfCollision(state) || checkWallCollision(state), state, "GAME OVER");
 }
 
-void handleWinningGame(GameState& state) {
-    endGameIf(state.snakeLength == MAX_SNAKE_LENGHT, state, "CONGRATS!");
-}
-
 bool checkWallCollision(GameState& state) {
-    int x = state.snake[0].x;
-    int y = state.snake[0].y;
+    int x = state.snake.body.front().x;
+    int y = state.snake.body.front().y;
     return (x < WALL_X1 || x >= WALL_X2|| y < WALL_Y1 || y >= WALL_Y2);
 }
 
 bool checkSelfCollision(GameState& state) {
-    int x = state.snake[0].x;
-    int y = state.snake[0].y;
-    for (int i = 1; i < state.snakeLength; ++i) {
-        if (x == state.snake[i].x && y == state.snake[i].y) return true;
+    int x = state.snake.body.front().x;
+    int y = state.snake.body.front().y;
+    for (size_t i = 1; i < state.snake.body.size(); i++) {
+        if (x == state.snake.body[i].x && y == state.snake.body[i].y) return true;
     }
     return false;
 }
 
-bool isAppleOnSnake(GameState& state, int x, int y) {
-    for (int i = 0; i < state.snakeLength; ++i) {
-        if (state.snake[i].x == x && state.snake[i].y == y) return true;
-    }
-    return false;
-}
-
-void generateApplePosition(GameState& state) {
-    do {
-        state.appleX = random(WALL_X1, WALL_X2); 
-        state.appleY = random(WALL_Y1, WALL_Y2);
-    } while (isAppleOnSnake(state, state.appleX, state.appleY));
+void handleWinningGame(GameState& state) {
+    size_t snakeLength = state.snake.body.size();
+    endGameIf(snakeLength == MAX_SNAKE_LENGHT, state, "CONGRATS!");
 }
 
 void moveSnake(GameState& state) {
-    if (state.wasAppleEaten) state.snakeLength++;
-    for (int i = state.snakeLength - 1; i > 0; --i)
-        state.snake[i] = state.snake[i - 1];
+    SnakeSegment newHead = {
+        state.snake.body.front().x + state.snake.dirX,
+        state.snake.body.front().y + state.snake.dirY
+    };
 
-    state.snake[0].x += state.dirX;
-    state.snake[0].y += state.dirY;
-    state.lastDirX = state.dirX;
-    state.lastDirY = state.dirY;
+    state.snake.body.push_front(newHead);
+    
+    if (!state.apple.wasAppleEaten) {
+        SnakeSegment tail = state.snake.body.back();
+        clearOldTail(tail);
+        state.snake.body.pop_back();
+    }else{
+        state.apple.wasAppleEaten = false;
+    }
+
+    state.snake.lastDirX = state.snake.dirX;
+    state.snake.lastDirY = state.snake.dirY;
 }
 
 void eatApple(GameState& state) {
     if (isHeadAtApplePosition(state)) {
-        state.wasAppleEaten = true;
+        state.apple.wasAppleEaten = true;
         clearOldApple(state);
         state.score++;
         updateScore(state);
@@ -153,6 +145,21 @@ void eatApple(GameState& state) {
     }
 }
 
-bool isHeadAtApplePosition(GameState& state){
-  return state.snake[0].x == state.appleX && state.snake[0].y == state.appleY;
+bool isHeadAtApplePosition(GameState& state) {
+    return state.snake.body.front().x == state.apple.x && state.snake.body.front().y == state.apple.y;
+}
+
+void generateApplePosition(GameState& state) {
+    do {
+        state.apple.x = random(WALL_X1, WALL_X2); 
+        state.apple.y = random(WALL_Y1, WALL_Y2);
+    } while (isAppleOnSnake(state, state.apple.x, state.apple.y));
+}
+
+bool isAppleOnSnake(GameState& state, int x, int y) {
+    for (size_t i = 0; i < state.snake.body.size(); i++) {
+        if (state.snake.body[i].x == x && state.snake.body[i].y == y) return true;
+    }
+    return false;
+    
 }
