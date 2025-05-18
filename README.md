@@ -34,6 +34,8 @@ A simple Snake game built with an ESP32 microcontroller, a TFT display, and a jo
 | `VCC`        | 3.3V       |
 | `GND`        | GND        |
 
+## Required Libraries
+- **[TFT_eSPI](https://github.com/Bodmer/TFT_eSPI)**  – a library for controlling TFT displays such as the ILI9341.
 
 ## How to Run
 
@@ -46,6 +48,10 @@ A simple Snake game built with an ESP32 microcontroller, a TFT display, and a jo
 - Move the snake using the joystick
 - Press the joystick to confirm menu selections
 
+## Gameplay Preview 
 
-
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/ce1fd713-5ba5-47af-9c2e-04478bf367cc" width="45%" />
+  <img src="https://github.com/user-attachments/assets/62da6d8b-ff2a-428c-90a9-5c6b50ac323f" width="45%" />
+</p>
 
